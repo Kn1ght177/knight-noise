@@ -1,38 +1,38 @@
-name: Build Flutter APK
-
+name: Build FlutterFlow APK
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '12.x'
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
 
-    - name: Create Flutter project scaffolding
-      run: flutter create . --overwrite
+      - name: Install FlutterFlow CLI
+        run: dart pub global activate flutterflow_cli
 
-    - name: Get dependencies
-      run: flutter pub get
+      - name: Download Code from FlutterFlow
+        run: |
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          flutterflow export-code --project knight-noise-sw5s11 --dest . --no-include-assets --token ${{ secrets.FF_TOKEN }}
 
-    - name: Build APK
-      run: flutter build apk --release
+      - name: Build APK
+        run: flutter build apk --release
 
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: knight-noise-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
